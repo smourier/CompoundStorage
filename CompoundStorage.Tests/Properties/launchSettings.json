@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CompoundStorage.Tests": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

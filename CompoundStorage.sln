@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32228.430
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompoundStorage", "CompoundStorage\CompoundStorage.csproj", "{D7214D19-E8E8-41C5-9EB2-DDF65D91B958}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompoundStorage.Tests", "CompoundStorage.Tests\CompoundStorage.Tests.csproj", "{B4006D68-A7B5-4202-9205-027D294BABD6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D7214D19-E8E8-41C5-9EB2-DDF65D91B958}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7214D19-E8E8-41C5-9EB2-DDF65D91B958}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7214D19-E8E8-41C5-9EB2-DDF65D91B958}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7214D19-E8E8-41C5-9EB2-DDF65D91B958}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4006D68-A7B5-4202-9205-027D294BABD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4006D68-A7B5-4202-9205-027D294BABD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4006D68-A7B5-4202-9205-027D294BABD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4006D68-A7B5-4202-9205-027D294BABD6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {39263D39-FD56-41AC-A17C-52AE5422FF8C}
+	EndGlobalSection
+EndGlobal
