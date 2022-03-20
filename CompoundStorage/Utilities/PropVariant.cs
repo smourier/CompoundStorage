@@ -649,8 +649,10 @@ namespace CompoundStorage.Utilities
                             case -2:
                                 var cf = Marshal.ReadInt32(cd.pClipData);
                                 var size = cd.cbSize - 4;
-                                var data = new ClipData(cf);
-                                data.Data = new byte[size];
+                                var data = new ClipData(cf)
+                                {
+                                    Data = new byte[size]
+                                };
                                 Marshal.Copy(cd.pClipData + 4, data.Data, 0, size);
                                 return data;
 
@@ -680,7 +682,7 @@ namespace CompoundStorage.Utilities
                         if ((_vt & PropertyType.VT_VECTOR) == PropertyType.VT_VECTOR)
                         {
                             var et = _vt & ~PropertyType.VT_VECTOR;
-                            if (TryGetVectorValue(et, out object vector))
+                            if (TryGetVectorValue(et, out var vector))
                                 return vector;
                         }
                         throw new Exception("Value of property type " + _vt + " is not supported.");
@@ -780,7 +782,7 @@ namespace CompoundStorage.Utilities
 
         public IntPtr Serialize(out int size)
         {
-            var hr = StgSerializePropVariant(this, out IntPtr ptr, out size);
+            var hr = StgSerializePropVariant(this, out var ptr, out size);
             if (hr != 0)
                 throw new Win32Exception(hr);
 
@@ -789,7 +791,7 @@ namespace CompoundStorage.Utilities
 
         public byte[] Serialize()
         {
-            var hr = StgSerializePropVariant(this, out IntPtr ptr, out int size);
+            var hr = StgSerializePropVariant(this, out var ptr, out int size);
             if (hr != 0)
                 throw new Win32Exception(hr);
 

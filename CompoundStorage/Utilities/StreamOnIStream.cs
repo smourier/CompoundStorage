@@ -25,7 +25,7 @@ namespace CompoundStorage.Utilities
             CanWrite = true;
         }
 
-        public IStream NativeStream => CheckDisposed();
+        public IStream NativeObject => CheckDisposed();
         public override bool CanTimeout => false;
         public override int ReadTimeout => Timeout.Infinite;
         public override int WriteTimeout => Timeout.Infinite;
@@ -184,7 +184,7 @@ namespace CompoundStorage.Utilities
         {
             var stream = _stream;
             if (stream == null)
-                throw new ObjectDisposedException(nameof(NativeStream));
+                throw new ObjectDisposedException(nameof(NativeObject));
 
             return stream;
         }
@@ -204,7 +204,7 @@ namespace CompoundStorage.Utilities
                     }
                     catch
                     {
-                        //+ do nothing
+                        // do nothing
                     }
                 }
 

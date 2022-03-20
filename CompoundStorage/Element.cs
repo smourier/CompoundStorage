@@ -33,5 +33,7 @@ namespace CompoundStorage
         }
 
         public override string ToString() => Type + " '" + Name + "' (" + Size + ")";
+
+        public int SetTimes(DateTime? creationTime, DateTime? lastAccessTime, DateTime? lasWriteTime, bool throwOnError = true) => new Storage(PStorage).SetElementTimes(Name, creationTime, lastAccessTime, lasWriteTime, throwOnError);
     }
 }

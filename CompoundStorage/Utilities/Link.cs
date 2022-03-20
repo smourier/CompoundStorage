@@ -264,7 +264,7 @@ namespace CompoundStorage.Utilities
         }
 
         [ComImport, Guid("0000010c-0000-0000-c000-000000000046"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private partial interface IPersist
+        internal partial interface IPersist
         {
             [PreserveSig]
             int GetClassID(out Guid pClassID);
@@ -293,7 +293,7 @@ namespace CompoundStorage.Utilities
         }
 
         [ComImport, Guid("00000109-0000-0000-C000-000000000046"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-        private interface IPersistStream : IPersist
+        internal interface IPersistStream : IPersist
         {
             [PreserveSig]
             new int GetClassID(out Guid pClassID);

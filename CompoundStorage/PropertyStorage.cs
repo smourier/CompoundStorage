@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using CompoundStorage.Utilities;
 
 namespace CompoundStorage
@@ -71,5 +72,103 @@ namespace CompoundStorage
 
         public override string ToString() => FmtId.ToString("B");
         public int Commit(STGC flags, bool throwOnError = true) => Storage.Throw(PStorage.Commit(flags), throwOnError);
+        public int DeletePropertyNames(bool throwOnError = true) => Storage.Throw(PStorage.DeletePropertyNames(), throwOnError);
+        public int DeleteProperty(int propid, bool throwOnError = true)
+        {
+            var spec = new Storage.PROPSPEC
+            {
+                ulKind = Storage.PRSPEC.PRSPEC_PROPID
+            };
+            spec.union.propid = propid;
+
+            return Storage.Throw(PStorage.DeleteMultiple(1, ref spec), throwOnError);
+        }
+
+        public int DeleteProperty(string name, bool throwOnError = true)
+        {
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+
+            var spec = new Storage.PROPSPEC
+            {
+                ulKind = Storage.PRSPEC.PRSPEC_LPWSTR
+            };
+            spec.union.lpwstr = Marshal.StringToCoTaskMemUni(name);
+
+            try
+            {
+                return Storage.Throw(PStorage.DeleteMultiple(1, ref spec), throwOnError);
+            }
+            finally
+            {
+                Marshal.FreeCoTaskMem(spec.union.lpwstr);
+            }
+        }
+
+        public int WriteProperty(string name, object value, int propidNameFirst = 2, bool throwOnError = true)
+        {
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+
+            var spec = new Storage.PROPSPEC
+            {
+                ulKind = Storage.PRSPEC.PRSPEC_LPWSTR
+            };
+            spec.union.lpwstr = Marshal.StringToCoTaskMemUni(name);
+
+            try
+            {
+                var ownedPv = false;
+                if (!(value is PropVariant pv))
+                {
+                    pv = new PropVariant(value);
+                    ownedPv = true;
+                }
+
+                try
+                {
+                    return Storage.Throw(PStorage.WriteMultiple(1, ref spec, pv, propidNameFirst), throwOnError);
+                }
+                finally
+                {
+                    if (ownedPv)
+                    {
+                        pv.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                Marshal.FreeCoTaskMem(spec.union.lpwstr);
+            }
+        }
+
+        public int WriteProperty(int propid, object value, bool throwOnError = true)
+        {
+            var spec = new Storage.PROPSPEC
+            {
+                ulKind = Storage.PRSPEC.PRSPEC_PROPID
+            };
+            spec.union.propid = propid;
+
+            var ownedPv = false;
+            if (!(value is PropVariant pv))
+            {
+                pv = new PropVariant(value);
+                ownedPv = true;
+            }
+
+            try
+            {
+                return Storage.Throw(PStorage.WriteMultiple(1, ref spec, pv, 0), throwOnError);
+            }
+            finally
+            {
+                if (ownedPv)
+                {
+                    pv.Dispose();
+                }
+            }
+        }
     }
 }

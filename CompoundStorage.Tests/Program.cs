@@ -9,6 +9,9 @@ namespace MyApp // Note: actual namespace depends on the project name.
     {
         static void Main(string[] args)
         {
+            var ps = MemoryPropertyStore.Deserialize(@"D:\smo\source\repos\ConsoleApp31\ConsoleApp1\bin\Debug\test.hxd");
+            ps.Serialize("ser.hxd");
+
             var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Recent\AutomaticDestinations", @"a52b0784bd667468.automaticDestinations-ms");
             //path = @"This is a PDF file.doc";
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
@@ -27,6 +28,12 @@ namespace CompoundStorage
             Throw(StgOpenStorageEx(filePath, mode, format, 0, IntPtr.Zero, IntPtr.Zero, typeof(IStorage).GUID, out var storage), true, filePath);
 
             _storage = (IStorage)storage;
+            _psetStorage = (IPropertySetStorage)storage;
+        }
+
+        internal Storage(IStorage storage)
+        {
+            _storage = storage;
             _psetStorage = (IPropertySetStorage)storage;
         }
 
@@ -94,6 +101,152 @@ namespace CompoundStorage
         }
 
         public int Commit(STGC flags, bool throwOnError = true) => Throw(PStorage.Commit(flags), throwOnError);
+        public int Revert(bool throwOnError = true) => Throw(PStorage.Revert(), throwOnError);
+        public int DestroyElement(string name, bool throwOnError = true) => Throw(PStorage.DestroyElement(name), throwOnError);
+        public int RenameElement(string oldName, string newName, bool throwOnError = true) => Throw(PStorage.RenameElement(oldName, newName), throwOnError);
+        public int MoveElementTo(string name, Storage storage, string newName, STGMOVE flags, bool throwOnError = true) => Throw(PStorage.MoveElementTo(name, storage.PStorage, newName, flags), throwOnError);
+        public int SetClass(Guid clsid, bool throwOnError = true) => Throw(PStorage.SetClass(clsid), throwOnError);
+
+        public int SetElementTimes(string name, DateTime? creationTime, DateTime? lastAccessTime, DateTime? lasWriteTime, bool throwOnError = true)
+        {
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+
+            long? ct;
+            if (creationTime == null)
+            {
+                ct = null;
+            }
+            else
+            {
+                ct = creationTime.Value.ToFileTime();
+            }
+
+            long? lat;
+            if (lastAccessTime == null)
+            {
+                lat = null;
+            }
+            else
+            {
+                lat = lastAccessTime.Value.ToFileTime();
+            }
+
+            long? lwt;
+            if (lasWriteTime == null)
+            {
+                lwt = null;
+            }
+            else
+            {
+                lwt = lasWriteTime.Value.ToFileTime();
+            }
+
+            return SetElementTimes(name, ct, lat, lwt, throwOnError);
+        }
+
+        public int SetElementTimes(string name, long? creationTime, long? lastAccessTime, long? lastWriteTime, bool throwOnError = true)
+        {
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+
+            var creationTimePtr = IntPtr.Zero;
+            if (creationTime.HasValue)
+            {
+                creationTimePtr = Marshal.AllocCoTaskMem(Marshal.SizeOf<long>());
+                Marshal.StructureToPtr(creationTime.Value, creationTimePtr, false);
+            }
+
+            var lastAccessTimePtr = IntPtr.Zero;
+            if (lastAccessTime.HasValue)
+            {
+                lastAccessTimePtr = Marshal.AllocCoTaskMem(Marshal.SizeOf<long>());
+                Marshal.StructureToPtr(lastAccessTime.Value, lastAccessTimePtr, false);
+            }
+
+            var lastWriteTimePtr = IntPtr.Zero;
+            if (lastWriteTime.HasValue)
+            {
+                lastWriteTimePtr = Marshal.AllocCoTaskMem(Marshal.SizeOf<long>());
+                Marshal.StructureToPtr(lastWriteTime.Value, lastWriteTimePtr, false);
+            }
+
+            try
+            {
+                return Throw(PStorage.SetElementTimes(name, creationTimePtr, lastAccessTimePtr, lastWriteTimePtr), throwOnError);
+            }
+            finally
+            {
+                if (creationTimePtr != IntPtr.Zero)
+                {
+                    Marshal.FreeCoTaskMem(creationTimePtr);
+                }
+
+                if (lastAccessTimePtr != IntPtr.Zero)
+                {
+                    Marshal.FreeCoTaskMem(lastAccessTimePtr);
+                }
+
+                if (lastWriteTimePtr != IntPtr.Zero)
+                {
+                    Marshal.FreeCoTaskMem(lastWriteTimePtr);
+                }
+            }
+        }
+
+        public IStream CreateStream(string name, STGM mode, bool throwOnError = true)
+        {
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+
+            Throw(PStorage.CreateStream(name, mode, 0, 0, out var stream), throwOnError);
+            return stream;
+        }
+
+        public IStream OpenNativeStream(string name, STGM mode, bool throwOnError = true)
+        {
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+
+            Throw(PStorage.OpenStream(name, IntPtr.Zero, mode, 0, out var stream), throwOnError);
+            return stream;
+        }
+
+        public Stream OpenStream(string name, STGM mode, bool throwOnError = true)
+        {
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+
+            Throw(PStorage.OpenStream(name, IntPtr.Zero, mode, 0, out var stream), throwOnError);
+            if (stream == null)
+                return null;
+
+            return new StreamOnIStream(stream, true);
+        }
+
+        public Storage CreateStorage(string name, STGM mode, bool throwOnError = true)
+        {
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+
+            Throw(PStorage.CreateStorage(name, mode, 0, 0, out var storage), throwOnError);
+            if (storage == null)
+                return null;
+
+            return new Storage(storage);
+        }
+
+        public Storage OpenStorage(string name, STGM mode, bool throwOnError = true)
+        {
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
+
+            Throw(PStorage.OpenStorage(name, null, mode, IntPtr.Zero, 0, out var storage), throwOnError);
+            if (storage == null)
+                return null;
+
+            return new Storage(storage);
+        }
 
         public PropertyStorage OpenPropertyStorage(Guid fmtid, STGM mode, bool throwOnError = true)
         {
@@ -227,10 +380,10 @@ namespace CompoundStorage
             int ReadMultiple(int cpspec, ref PROPSPEC rgpspec, [In, Out] PropVariant rgpropvar); // only works for cpspec = 1
 
             [PreserveSig]
-            int WriteMultiple(int cpspec, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] PROPSPEC[] rgpspec, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] PropVariant[] rgpropvar, int propidNameFirst);
+            int WriteMultiple(int cpspec, ref PROPSPEC rgpspec, PropVariant rgpropvar, int propidNameFirst); // only works for cpspec = 1
 
             [PreserveSig]
-            int DeleteMultiple(int cpspec, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] PROPSPEC[] rgpspec);
+            int DeleteMultiple(int cpspec, ref PROPSPEC rgpspec); // only works for cpspec = 1
 
             [PreserveSig]
             int ReadPropertyNames(int cpropid, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] uint[] rgpropid, [Out, MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr, SizeParamIndex = 0)] string[] rglpwstrName);
@@ -313,7 +466,7 @@ namespace CompoundStorage
             int RenameElement([MarshalAs(UnmanagedType.LPWStr)] string pwcsOldName, [MarshalAs(UnmanagedType.LPWStr)] string pwcsNewName);
 
             [PreserveSig]
-            int SetElementTimes([MarshalAs(UnmanagedType.LPWStr)] string pwcsName, ref FILETIME pctime, ref FILETIME patime, ref FILETIME pmtime);
+            int SetElementTimes([MarshalAs(UnmanagedType.LPWStr)] string pwcsName, IntPtr pctime, IntPtr patime, ref IntPtr pmtime);
 
             [PreserveSig]
             int SetClass([MarshalAs(UnmanagedType.LPStruct)] Guid clsid);
