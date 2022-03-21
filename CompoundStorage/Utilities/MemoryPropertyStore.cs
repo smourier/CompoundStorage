@@ -34,16 +34,34 @@ namespace CompoundStorage.Utilities
             }
         }
 
-        public void Serialize(string filePath, bool clearDirty = true, bool throwOnError = true)
+        public byte[] Serialize(bool throwOnError = true)
+        {
+            Storage.Throw(PStorage.GetPropertyStorage(out var ptr, out var size), throwOnError);
+            if (size == 0)
+                return Array.Empty<byte>();
+
+            var bytes = new byte[size];
+            try
+            {
+                Marshal.Copy(ptr, bytes, 0, size);
+                return bytes;
+            }
+            finally
+            {
+                Marshal.FreeCoTaskMem(ptr);
+            }
+        }
+
+        public void Save(string filePath, bool clearDirty = true, bool throwOnError = true)
         {
             if (filePath == null)
                 throw new ArgumentNullException(nameof(filePath));
 
             using (var file = File.OpenWrite(filePath))
-                Serialize(file, clearDirty, throwOnError);
+                Save(file, clearDirty, throwOnError);
         }
 
-        public void Serialize(Stream stream, bool clearDirty = true, bool throwOnError = true)
+        public void Save(Stream stream, bool clearDirty = true, bool throwOnError = true)
         {
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
@@ -52,16 +70,16 @@ namespace CompoundStorage.Utilities
             Storage.Throw(pstream.Save(new ManagedIStream(stream), clearDirty), throwOnError);
         }
 
-        public static MemoryPropertyStore Deserialize(string filePath, bool throwOnError = true)
+        public static MemoryPropertyStore Load(string filePath, bool throwOnError = true)
         {
             if (filePath == null)
                 throw new ArgumentNullException(nameof(filePath));
 
             using (var file = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                return Deserialize(file, throwOnError);
+                return Load(file, throwOnError);
         }
 
-        public static MemoryPropertyStore Deserialize(Stream stream, bool throwOnError = true)
+        public static MemoryPropertyStore Load(Stream stream, bool throwOnError = true)
         {
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));

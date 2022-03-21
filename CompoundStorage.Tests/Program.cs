@@ -9,10 +9,7 @@ namespace MyApp // Note: actual namespace depends on the project name.
     {
         static void Main(string[] args)
         {
-            var ps = MemoryPropertyStore.Deserialize(@"D:\smo\source\repos\ConsoleApp31\ConsoleApp1\bin\Debug\test.hxd");
-            ps.Serialize("ser.hxd");
-
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Recent\AutomaticDestinations", @"a52b0784bd667468.automaticDestinations-ms");
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Microsoft\Windows\Recent\AutomaticDestinations", @"5f7b5f1e01b83767.automaticDestinations-ms");
             //path = @"This is a PDF file.doc";
 
             using (var pset = new Storage(path))
@@ -31,10 +28,10 @@ namespace MyApp // Note: actual namespace depends on the project name.
                             else
                             {
                                 Console.WriteLine(element);
-                                using (var file = File.OpenWrite("stream" + element.Name))
-                                {
-                                    stream.CopyTo(file);
-                                }
+                                //using (var file = File.OpenWrite("stream" + element.Name))
+                                //{
+                                //    stream.CopyTo(file);
+                                //}
                             }
                         }
                     }
